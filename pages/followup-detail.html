@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>跟进记录详情 - CRM 原型</title>
+  <link rel="stylesheet" href="../assets/css/common.css" />
+  <link rel="stylesheet" href="./followup-detail.css" />
+</head>
+<body>
+  <div class="layout">
+    <header class="header">
+      <div class="header-title">CRM 客户管理系统 · 客户跟进事项原型</div>
+      <div class="btn-row">
+        <button class="btn btn-outline" id="showIntroBtn">原型说明</button>
+      </div>
+    </header>
+
+    <aside class="sidebar">
+      <div class="logo">SaaS CRM</div>
+      <div class="nav-group">
+        <a class="nav-item" href="./customer-list.html">客户列表</a>
+        <a class="nav-item" href="./customer-detail.html">客户详情</a>
+        <span class="nav-item active">跟进详情</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="breadcrumbs">CRM / 客户管理 / 客户列表 / 客户详情 / 跟进记录详情</div>
+      <div class="page-title-row">
+        <h1 class="page-title">跟进记录详情</h1>
+        <a class="btn btn-outline" id="backLink" href="./customer-detail.html">返回上一页</a>
+      </div>
+
+      <div class="hint">演示提示：点击“编辑”切换可编辑状态，保存后同步到历史与详情摘要；删除会出现二次确认，并提示“删除后不可恢复”。</div>
+
+      <section class="panel detail-panel" id="detailWrap"></section>
+    </main>
+  </div>
+
+  <div class="event-panel">
+    <div class="event-head">埋点事件实时日志（最近）</div>
+    <ul class="event-list" id="eventList"></ul>
+  </div>
+
+  <div class="modal-mask" id="deleteModal">
+    <div class="modal">
+      <div class="modal-head">确认删除</div>
+      <div class="modal-body">
+        删除后不可恢复，确认要删除当前跟进记录吗？
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" id="cancelDeleteBtn">取消</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn">确认删除</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="introModal">
+    <div class="modal">
+      <div class="modal-head">原型说明</div>
+      <div class="modal-body">
+        当前页面为“跟进详情页”，支持查看、编辑、删除，所有变更会立即同步至其他页面。
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-primary" id="closeIntroBtn">我知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script src="../assets/js/store.js"></script>
+  <script src="./followup-detail.js"></script>
+</body>
+</html>

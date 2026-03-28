@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>新增跟进记录 - CRM 原型</title>
+  <link rel="stylesheet" href="../assets/css/common.css" />
+  <link rel="stylesheet" href="./new-followup.css" />
+</head>
+<body>
+  <div class="layout">
+    <header class="header">
+      <div class="header-title">CRM 客户管理系统 · 客户跟进事项原型</div>
+      <div class="btn-row">
+        <button class="btn btn-outline" id="showIntroBtn">原型说明</button>
+      </div>
+    </header>
+
+    <aside class="sidebar">
+      <div class="logo">SaaS CRM</div>
+      <div class="nav-group">
+        <a class="nav-item" href="./customer-list.html">客户列表</a>
+        <a class="nav-item" href="./customer-detail.html">客户详情</a>
+        <span class="nav-item active">新增跟进</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="breadcrumbs">CRM / 客户管理 / 客户列表 / 客户详情 / 新增跟进记录</div>
+      <div class="page-title-row">
+        <h1 class="page-title">新增跟进记录</h1>
+        <a class="btn btn-outline" id="backBtn" href="./customer-detail.html">返回</a>
+      </div>
+
+      <div class="hint">演示提示：填写任意字段时会更新“已填写字段数”，并触发模拟埋点；提交成功后会同步到客户详情和历史页。</div>
+
+      <section class="panel form-panel">
+        <div class="panel-header">
+          <h3 class="panel-title">跟进信息表单</h3>
+          <div class="fill-count" id="fillCount">已填写 0 / 5 项</div>
+        </div>
+        <div class="panel-body">
+          <div class="form-row">
+            <div class="form-label"><span>跟进类型 <span class="required">*</span></span></div>
+            <select class="select" id="typeKey">
+              <option value="">请选择</option>
+              <option value="电话沟通">电话沟通</option>
+              <option value="线上会议">线上会议</option>
+              <option value="上门拜访">上门拜访</option>
+              <option value="微信沟通">微信沟通</option>
+              <option value="邮件往来">邮件往来</option>
+              <option value="自定义标签">自定义标签</option>
+            </select>
+            <div class="error" id="typeKeyError"></div>
+          </div>
+
+          <div class="form-row hidden" id="customLabelRow">
+            <div class="form-label"><span>自定义标签名称 <span class="required">*</span></span></div>
+            <input class="input" id="typeLabelCustom" placeholder="例如：法务沟通 / 合同推进" />
+            <div class="error" id="typeLabelCustomError"></div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-label"><span>跟进时间 <span class="required">*</span></span></div>
+            <input type="datetime-local" class="input" id="followupTime" />
+            <div class="error" id="followupTimeError"></div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-label"><span>跟进人</span></div>
+            <input class="input readonly" id="person" readonly />
+          </div>
+
+          <div class="form-row">
+            <div class="form-label"><span>跟进内容 <span class="required">*</span></span></div>
+            <textarea class="textarea" id="content" placeholder="请输入本次跟进内容，建议描述客户反馈、问题及下一步动作。"></textarea>
+            <div class="error" id="contentError"></div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-label"><span>下次跟进时间</span></div>
+            <input type="datetime-local" class="input" id="nextFollowupTime" />
+          </div>
+
+          <div class="track-box">
+            <strong>模拟埋点调试信息区</strong>
+            <ul>
+              <li>followup_create_click：点击新增入口</li>
+              <li>followup_form_view：进入表单页面</li>
+              <li>followup_form_fill_progress：表单字段填写进度变更</li>
+              <li>followup_submit_success：提交成功</li>
+            </ul>
+          </div>
+
+          <div class="footer-actions">
+            <a class="btn btn-outline" id="cancelBtn" href="./customer-detail.html">取消</a>
+            <button class="btn btn-primary" id="submitBtn">提交并保存</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="event-panel">
+    <div class="event-head">埋点事件实时日志（最近）</div>
+    <ul class="event-list" id="eventList"></ul>
+  </div>
+
+  <div class="modal-mask" id="introModal">
+    <div class="modal">
+      <div class="modal-head">原型说明</div>
+      <div class="modal-body">
+        当前页面为“新增跟进记录”独立页面，用于演示表单校验与新增流程，提交后会同步写入历史数据。
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-primary" id="closeIntroBtn">我知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script src="../assets/js/store.js"></script>
+  <script src="./new-followup.js"></script>
+</body>
+</html>

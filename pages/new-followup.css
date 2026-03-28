@@ -1,0 +1,39 @@
+.form-panel {
+  max-width: 860px;
+}
+
+.fill-count {
+  font-size: 13px;
+  color: #2c4d99;
+  background: #edf3ff;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.hidden {
+  display: none;
+}
+
+.track-box {
+  margin-top: 8px;
+  background: #f6f9ff;
+  border: 1px dashed #c4d7ff;
+  border-radius: 10px;
+  padding: 12px;
+  color: #3b4f76;
+}
+
+.track-box strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.track-box ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.track-box li {
+  margin: 5px 0;
+  font-size: 13px;
+}

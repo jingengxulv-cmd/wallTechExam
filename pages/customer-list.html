@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>客户列表 - CRM 原型</title>
+  <link rel="stylesheet" href="../assets/css/common.css" />
+  <link rel="stylesheet" href="./customer-list.css" />
+</head>
+<body>
+  <div class="layout">
+    <header class="header">
+      <div class="header-title">CRM 客户管理系统 · 客户跟进事项原型</div>
+      <div class="btn-row">
+        <button class="btn btn-outline" id="resetMockBtn">重置 Mock 数据</button>
+        <button class="btn btn-outline" id="toggleLogBtn">埋点日志：关</button>
+        <button class="btn btn-outline" id="showIntroBtn">原型说明</button>
+      </div>
+    </header>
+
+    <aside class="sidebar">
+      <div class="logo">SaaS CRM</div>
+      <div class="nav-group">
+        <a class="nav-item active" href="./customer-list.html">客户列表</a>
+        <span class="nav-item">商机管理</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="breadcrumbs">CRM / 客户管理 / 客户列表</div>
+      <div class="page-title-row">
+        <h1 class="page-title">客户列表</h1>
+        <button class="btn btn-primary" id="openDetailDemoBtn">进入客户详情演示</button>
+      </div>
+
+      <div class="hint">演示起点：先在客户列表选择目标客户，再进入客户详情查看“跟进记录”模块，继续演示新增、详情、历史追溯和编辑删除。</div>
+
+      <section class="panel filter-panel">
+        <div class="panel-body filter-grid">
+          <div>
+            <div class="form-label">客户名称</div>
+            <input class="input" id="keyword" placeholder="输入客户名称关键词" />
+          </div>
+          <div>
+            <div class="form-label">客户阶段</div>
+            <select class="select" id="stageFilter">
+              <option value="all">全部阶段</option>
+              <option value="意向">意向</option>
+              <option value="跟进中">跟进中</option>
+              <option value="方案沟通">方案沟通</option>
+            </select>
+          </div>
+          <div class="actions">
+            <button class="btn btn-outline" id="resetBtn">重置</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h3 class="panel-title">客户数据（Mock）</h3>
+        </div>
+        <div class="panel-body">
+          <table class="table" id="customerTable">
+            <thead>
+              <tr>
+                <th>客户名称</th>
+                <th>所属行业</th>
+                <th>客户阶段</th>
+                <th>负责人</th>
+                <th>最新跟进进度</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="customerTbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-mask" id="detailModal">
+    <div class="modal modal-detail">
+      <div class="modal-head"><span>客户详情</span><button class="modal-close" data-close="detailModal">×</button></div>
+      <div class="modal-body">
+        <div class="hint compact">当前为列表页内客户详情弹窗，支持继续新增跟进、查看跟进历史与详情操作。</div>
+        <section class="panel">
+          <div class="panel-header">
+            <h3 class="panel-title">客户基础信息</h3>
+          </div>
+          <div class="panel-body">
+            <div class="field-grid" id="detailCustomerFields"></div>
+          </div>
+        </section>
+
+        <section class="panel detail-followup-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">跟进记录</h3>
+            <div class="btn-row">
+              <button class="btn btn-primary" id="detailNewBtn">新增跟进</button>
+              <button class="btn btn-outline" id="detailHistoryBtn">跟进历史</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <section class="stats-grid" id="detailStats"></section>
+            <div id="detailLatestWrap"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div class="event-panel" id="eventPanel">
+    <div class="event-head">埋点事件实时日志（最近）</div>
+    <ul class="event-list" id="eventList"></ul>
+  </div>
+
+  <div class="modal-mask" id="createModal">
+    <div class="modal modal-wide">
+      <div class="modal-head"><span>新增跟进记录</span><button class="modal-close" data-close="createModal">×</button></div>
+      <div class="modal-body">
+        <div class="hint compact">已填写 <span id="fillCount">0 / 4</span> 项。提交后会同步更新列表最新跟进进度。</div>
+        <div class="form-row">
+          <div class="form-label"><span>跟进类型 <span class="required">*</span></span></div>
+          <select class="select" id="typeKey">
+            <option value="">请选择</option>
+            <option value="电话沟通">电话沟通</option>
+            <option value="线上会议">线上会议</option>
+            <option value="上门拜访">上门拜访</option>
+            <option value="微信沟通">微信沟通</option>
+            <option value="邮件往来">邮件往来</option>
+            <option value="自定义标签">自定义标签</option>
+          </select>
+          <div class="error" id="typeKeyError"></div>
+        </div>
+        <div class="form-row hidden" id="customLabelRow">
+          <div class="form-label"><span>自定义标签名称 <span class="required">*</span></span></div>
+          <input class="input" id="typeLabelCustom" />
+          <div class="error" id="typeLabelCustomError"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-label"><span>跟进时间 <span class="required">*</span></span></div>
+          <input type="datetime-local" class="input" id="followupTime" />
+          <div class="error" id="followupTimeError"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-label"><span>跟进人</span></div>
+          <input class="input readonly" id="person" readonly />
+        </div>
+        <div class="form-row">
+          <div class="form-label"><span>跟进内容（选填）</span></div>
+          <textarea class="textarea" id="content"></textarea>
+          <div class="error" id="contentError"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-label"><span>下次跟进时间</span></div>
+          <input type="datetime-local" class="input" id="nextFollowupTime" />
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-primary" id="submitCreateBtn">提交并保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="historyModal">
+    <div class="modal modal-history">
+      <div class="modal-head"><span>跟进历史</span><button class="modal-close" data-close="historyModal">×</button></div>
+      <div class="modal-body">
+        <section class="filter-inline">
+          <div class="filter-item">
+            <label>跟进类型</label>
+            <select class="select" id="historyTypeFilter">
+              <option value="all">全部类型</option>
+              <option value="电话沟通">电话沟通</option>
+              <option value="线上会议">线上会议</option>
+              <option value="上门拜访">上门拜访</option>
+              <option value="微信沟通">微信沟通</option>
+              <option value="邮件往来">邮件往来</option>
+              <option value="自定义标签">自定义标签</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>开始日期</label>
+            <div class="input-with-clear">
+              <input type="date" class="input" id="historyStartDate" />
+              <button class="input-clear hidden" id="historyStartClearBtn" type="button">×</button>
+            </div>
+          </div>
+          <div class="filter-item">
+            <label>结束日期</label>
+            <div class="input-with-clear">
+              <input type="date" class="input" id="historyEndDate" />
+              <button class="input-clear hidden" id="historyEndClearBtn" type="button">×</button>
+            </div>
+          </div>
+          <div class="filter-item actions">
+            <button class="btn btn-outline" id="historyResetBtn">重置筛选</button>
+          </div>
+        </section>
+        <div id="historyWrap"></div>
+      </div>
+      <div class="modal-foot history-foot">
+        <span class="history-count" id="historyCount">共 0 条</span>
+        <button class="btn btn-outline" id="historyMoreBtn">查看更多</button>
+        <button class="btn btn-primary" id="historyCreateBtn">新增跟进</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="historyDetailModal">
+    <div class="modal modal-wide">
+      <div class="modal-head"><span>跟进记录详情</span><button class="modal-close" data-close="historyDetailModal">×</button></div>
+      <div class="modal-body" id="historyDetailContent"></div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" id="historyEditBtn">编辑</button>
+        <button class="btn btn-danger" id="historyDeleteBtn">删除</button>
+        <button class="btn btn-primary hidden" id="historySaveBtn">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="historyDeleteModal">
+    <div class="modal">
+      <div class="modal-head"><span>确认删除</span><button class="modal-close" data-close="historyDeleteModal">×</button></div>
+      <div class="modal-body">删除后不可恢复，确认要删除当前跟进记录吗？</div>
+      <div class="modal-foot">
+        <button class="btn btn-danger" id="historyConfirmDeleteBtn">确认删除</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="introModal">
+    <div class="modal">
+      <div class="modal-head"><span>原型说明</span><button class="modal-close" data-close="introModal">×</button></div>
+      <div class="modal-body">
+        当前页面为演示入口“客户列表页”，用于模拟销售从列表进入目标客户详情并开展后续跟进管理。
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/store.js"></script>
+  <script src="./customer-list.js"></script>
+</body>
+</html>

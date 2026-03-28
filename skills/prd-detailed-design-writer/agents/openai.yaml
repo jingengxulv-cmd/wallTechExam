@@ -1,0 +1,4 @@
+interface:
+  display_name: "PRD Design Writer"
+  short_description: "Generate page-level detailed design PRD from recent code changes"
+  default_prompt: "Analyze recently added code and produce page-level PRD detailed design in Markdown with interactions and edge cases."
