@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>管理者看板（前瞻） - CRM 原型</title>
+  <link rel="stylesheet" href="../assets/css/common.css" />
+  <link rel="stylesheet" href="./manager-dashboard.css" />
+</head>
+<body>
+  <div class="layout">
+    <header class="header">
+      <div class="header-title">CRM 客户管理系统 · 管理者数据看板（前瞻）</div>
+      <div class="btn-row">
+        <button class="btn btn-outline tip" id="refreshBtn" data-tip="功能：基于最新跟进数据刷新看板统计。&#10;点击：重新计算卡片与榜单。">刷新看板</button>
+        <button class="btn btn-outline tip" id="openMetricNoteBtn" data-tip="功能：查看KPI指标计算口径。&#10;点击：打开口径说明弹窗。">口径说明</button>
+      </div>
+    </header>
+
+    <aside class="sidebar">
+      <div class="logo">SaaS CRM</div>
+      <div class="nav-group">
+        <a class="nav-item" href="./customer-list.html">客户列表</a>
+        <a class="nav-item active" href="./manager-dashboard.html">管理者看板（前瞻）</a>
+        <span class="nav-item">商机管理</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="breadcrumbs">CRM / 客户管理 / 管理者看板（前瞻）</div>
+      <div class="page-title-row">
+        <h1 class="page-title">管理者数据看板</h1>
+        <div class="toolbar">
+          <label for="rangeFilter">统计周期</label>
+          <select class="select" id="rangeFilter">
+            <option value="7d">近7天</option>
+            <option value="30d">近30天</option>
+            <option value="month">本月</option>
+            <option value="all">全部</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="hint">
+        本页面用于管理者评估销售执行质量与风险客户分布，为后续KPI考核提供量化依据。页面为“前瞻”能力，采用当前原型数据实时计算。
+      </div>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h3 class="panel-title">核心指标（8项）</h3>
+          <span class="panel-sub" id="updatedAtText"></span>
+        </div>
+        <div class="panel-body">
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div class="metric-label">团队本月跟进总数</div>
+              <div class="metric-value" id="metricTeamMonthly">0</div>
+              <div class="metric-desc">观察销售动作总量</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">客户覆盖率</div>
+              <div class="metric-value" id="metricCoverage">0%</div>
+              <div class="metric-desc">有跟进客户 / 客户总数</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">按时完成率</div>
+              <div class="metric-value" id="metricOnTime">0%</div>
+              <div class="metric-desc">已标记完成且未超时</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">平均响应间隔</div>
+              <div class="metric-value" id="metricAvgResponse">0小时</div>
+              <div class="metric-desc">同一销售相邻跟进时间间隔均值</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">下次待跟进池</div>
+              <div class="metric-value" id="metricPending">0</div>
+              <div class="metric-desc">未来待执行计划数</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">有效内容率</div>
+              <div class="metric-value" id="metricEffectiveContent">0%</div>
+              <div class="metric-desc">内容长度达到最小阈值</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">人均触达客户数</div>
+              <div class="metric-value" id="metricAvgTouched">0</div>
+              <div class="metric-desc">销售人均触达客户数</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">风险客户数</div>
+              <div class="metric-value danger" id="metricRiskCustomers">0</div>
+              <div class="metric-desc">逾期或长时间未跟进</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="rank-grid">
+        <div class="panel">
+          <div class="panel-header">
+            <h3 class="panel-title">销售执行榜</h3>
+            <span class="panel-sub">跟进数 + 响应间隔加权</span>
+          </div>
+          <div class="panel-body">
+            <table class="table rank-table">
+              <colgroup>
+                <col style="width: 74px;" />
+                <col style="width: 34%;" />
+                <col style="width: 78px;" />
+                <col style="width: 116px;" />
+                <col style="width: 96px;" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>排名</th>
+                  <th>销售</th>
+                  <th>跟进数</th>
+                  <th>平均响应间隔</th>
+                  <th>执行评分</th>
+                </tr>
+              </thead>
+              <tbody id="execRankBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h3 class="panel-title">销售质量榜</h3>
+            <span class="panel-sub">有效内容率优先</span>
+          </div>
+          <div class="panel-body">
+            <table class="table rank-table">
+              <colgroup>
+                <col style="width: 74px;" />
+                <col style="width: 34%;" />
+                <col style="width: 78px;" />
+                <col style="width: 116px;" />
+                <col style="width: 116px;" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>排名</th>
+                  <th>销售</th>
+                  <th>跟进数</th>
+                  <th>有效内容率</th>
+                  <th>记录完整率</th>
+                </tr>
+              </thead>
+              <tbody id="qualityRankBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel ai-panel">
+        <div class="panel-header">
+          <h3 class="panel-title">AI总结（前瞻样例）</h3>
+          <div class="ai-head-actions">
+            <span class="panel-sub" id="aiSummaryTime">尚未生成</span>
+            <button class="btn btn-primary tip" id="openAiSummaryBtn" data-tip="功能：模拟AI对当前指标进行总结分析与员工评价。&#10;说明：本原型仅为前瞻演示，不调用真实AI。">AI一键总结（前瞻）</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="ai-note">说明：以下内容为前瞻样例，不调用真实AI模型，仅用于演示“管理者智能分析”交互。</div>
+          <div class="ai-summary-content" id="aiSummaryContent">
+            <div class="empty-tip">点击右上角“AI一键总结（前瞻）”生成数据分析结论。</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-mask" id="metricNoteModal">
+    <div class="modal">
+      <div class="modal-head">
+        <span>KPI口径说明（前瞻）</span>
+        <button class="modal-close" data-close="metricNoteModal">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="metric-note-list">
+          <p>1. 按时完成率：存在下次跟进时间，且已标记“已跟进”，并在计划时间+24小时内完成。</p>
+          <p>2. 平均响应间隔：同一销售在统计周期内相邻两次跟进时间差的平均值（越低越好）。</p>
+          <p>3. 有效内容率：跟进内容字符数 ≥ 20 记为有效。</p>
+          <p>4. 风险客户：满足“存在逾期未跟进”或“近14天无跟进记录”。</p>
+          <p>5. 客户覆盖率：统计周期内有跟进客户数 ÷ 客户总数（演示口径总客户=3）。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/store.js"></script>
+  <script src="./manager-dashboard.js"></script>
+</body>
+</html>
