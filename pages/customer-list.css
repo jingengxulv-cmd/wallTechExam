@@ -165,6 +165,25 @@
   margin-bottom: 6px;
 }
 
+.date-input-wrap {
+  position: relative;
+}
+
+.date-display-input {
+  cursor: pointer;
+  background: #fff;
+}
+
+.date-picker-hidden {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .timeline {
   position: relative;
   padding-left: 24px;

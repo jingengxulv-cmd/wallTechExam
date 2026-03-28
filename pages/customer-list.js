@@ -9,9 +9,83 @@
   var historyMode = "all";
   var activeHistoryId = "";
   var historyEditing = false;
+  var createFillState = {
+    lastLoggedProgressKey: "",
+    lastContentSnapshot: ""
+  };
+  var tooltipState = {
+    el: null,
+    target: null
+  };
 
   function qs(name) {
     return new URLSearchParams(window.location.search).get(name);
+  }
+
+  function hideTooltip() {
+    if (!tooltipState.el) return;
+    tooltipState.el.classList.remove("show");
+    tooltipState.target = null;
+  }
+
+  function showTooltip(target) {
+    if (!tooltipState.el || !target) return;
+    var text = target.getAttribute("data-tip");
+    if (!text) return;
+    tooltipState.target = target;
+    tooltipState.el.textContent = text;
+    tooltipState.el.style.left = "-9999px";
+    tooltipState.el.style.top = "-9999px";
+    tooltipState.el.classList.add("show");
+
+    var rect = target.getBoundingClientRect();
+    var tipRect = tooltipState.el.getBoundingClientRect();
+    var gap = 10;
+    var top = rect.top - tipRect.height - gap;
+    if (top < 8) top = rect.bottom + gap;
+    var left = rect.left + rect.width / 2 - tipRect.width / 2;
+    left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
+
+    tooltipState.el.style.left = Math.round(left) + "px";
+    tooltipState.el.style.top = Math.round(top) + "px";
+  }
+
+  function initGlobalTooltip() {
+    if (tooltipState.el) return;
+    var el = document.createElement("div");
+    el.className = "global-tooltip";
+    document.body.appendChild(el);
+    tooltipState.el = el;
+
+    document.addEventListener("pointerover", function (e) {
+      var target = e.target.closest(".tip[data-tip]");
+      if (!target) return;
+      if (tooltipState.target === target) return;
+      showTooltip(target);
+    });
+
+    document.addEventListener("pointerout", function (e) {
+      if (!tooltipState.target) return;
+      var outTarget = e.target.closest(".tip[data-tip]");
+      if (outTarget !== tooltipState.target) return;
+      var related = e.relatedTarget;
+      if (related && tooltipState.target.contains(related)) return;
+      hideTooltip();
+    });
+
+    document.addEventListener("focusin", function (e) {
+      var target = e.target.closest(".tip[data-tip]");
+      if (target) showTooltip(target);
+    });
+
+    document.addEventListener("focusout", function (e) {
+      var target = e.target.closest(".tip[data-tip]");
+      if (target) hideTooltip();
+    });
+
+    document.addEventListener("click", hideTooltip);
+    window.addEventListener("scroll", hideTooltip, true);
+    window.addEventListener("resize", hideTooltip);
   }
 
   function latest() {
@@ -118,9 +192,9 @@
       var tagClass = r.progress === "待跟进" ? "tag-custom" : CRMStore.typeClass(r.progress);
       var op = r.isMain
         ? "<div class='op-row'>" +
-          "<button class='btn btn-outline btn-add' data-id='" + r.id + "'>新增跟进</button>" +
-          "<button class='btn btn-outline btn-history' data-id='" + r.id + "'>跟进历史</button>" +
-          "<button class='btn btn-primary btn-detail' data-id='" + r.id + "'>查看详情</button>" +
+          "<button class='btn btn-outline btn-add tip' data-id='" + r.id + "' data-tip='功能：新增客户跟进记录。&#10;点击：打开新增跟进弹窗。'>新增跟进</button>" +
+          "<button class='btn btn-outline btn-history tip' data-id='" + r.id + "' data-tip='功能：查看该客户历史跟进。&#10;点击：打开历史弹窗并可筛选。'>跟进历史</button>" +
+          "<button class='btn btn-primary btn-detail tip' data-id='" + r.id + "' data-tip='功能：查看客户详情。&#10;点击：打开详情弹窗。'>查看详情</button>" +
           "</div>"
         : "<button class='btn btn-outline' disabled>仅演示主客户</button>";
 
@@ -166,10 +240,12 @@
       var e = document.getElementById(k + "Error");
       if (e) e.textContent = "";
     });
-    updateFillCount();
+    createFillState.lastLoggedProgressKey = "";
+    createFillState.lastContentSnapshot = "";
+    updateFillCount(false);
   }
 
-  function updateFillCount() {
+  function updateFillCount(shouldLog) {
     var type = document.getElementById("typeKey").value;
     var total = type === "自定义标签" ? 5 : 4;
     var done = 0;
@@ -178,9 +254,13 @@
     if (document.getElementById("followupTime").value) done++;
     if (document.getElementById("person").value) done++;
     if (document.getElementById("content").value.trim()) done++;
+    var progressKey = done + "/" + total;
     document.getElementById("fillCount").textContent = done + " / " + total;
-    CRMStore.logEvent("followup_form_fill_progress");
-    renderLogs();
+    if (shouldLog && progressKey !== createFillState.lastLoggedProgressKey) {
+      CRMStore.logEvent("followup_form_fill_progress");
+      renderLogs();
+      createFillState.lastLoggedProgressKey = progressKey;
+    }
   }
 
   function validateForm() {
@@ -236,11 +316,79 @@
     };
   }
 
+  function formatDateForDisplay(dateVal) {
+    if (!dateVal) return "";
+    var parts = dateVal.split("-");
+    if (parts.length !== 3) return dateVal;
+    return parts[0] + "年" + parts[1] + "月" + parts[2] + "日";
+  }
+
+  function syncHistoryDateDisplays() {
+    var startVal = document.getElementById("historyStartDate").value;
+    var endVal = document.getElementById("historyEndDate").value;
+    document.getElementById("historyStartDateDisplay").value = formatDateForDisplay(startVal);
+    document.getElementById("historyEndDateDisplay").value = formatDateForDisplay(endVal);
+  }
+
+  function setupHistoryDateInputs() {
+    [
+      { valueId: "historyStartDate", displayId: "historyStartDateDisplay" },
+      { valueId: "historyEndDate", displayId: "historyEndDateDisplay" }
+    ].forEach(function (item) {
+      var picker = document.getElementById(item.valueId);
+      var display = document.getElementById(item.displayId);
+      if (!picker || !display) return;
+
+      function openPicker() {
+        if (typeof picker.showPicker === "function") {
+          try {
+            picker.showPicker();
+            return;
+          } catch (e) {}
+        }
+        picker.focus();
+      }
+
+      display.addEventListener("click", openPicker);
+      display.addEventListener("focus", openPicker);
+    });
+    syncHistoryDateDisplays();
+  }
+
+  function normalizeHistoryDateRange(changedId) {
+    var startEl = document.getElementById("historyStartDate");
+    var endEl = document.getElementById("historyEndDate");
+    var startVal = startEl.value;
+    var endVal = endEl.value;
+
+    if (!startVal && !endVal) return;
+
+    if (changedId === "historyStartDate" && startVal && !endVal) {
+      endEl.value = startVal;
+      return;
+    }
+
+    if (changedId === "historyEndDate" && endVal && !startVal) {
+      startEl.value = endVal;
+      return;
+    }
+
+    if (startVal && endVal && startVal > endVal) {
+      if (changedId === "historyStartDate") {
+        endEl.value = startVal;
+      } else {
+        startEl.value = endVal;
+      }
+      toast("日期区间已自动调整", "success");
+    }
+  }
+
   function refreshDateClearState() {
     var startVal = document.getElementById("historyStartDate").value;
     var endVal = document.getElementById("historyEndDate").value;
     document.getElementById("historyStartClearBtn").classList.toggle("hidden", !startVal);
     document.getElementById("historyEndClearBtn").classList.toggle("hidden", !endVal);
+    syncHistoryDateDisplays();
   }
 
   function truncate(str, len) {
@@ -273,7 +421,7 @@
     document.getElementById("detailStats").innerHTML =
       "<div class='stat-card'><div class='stat-label'>累计跟进次数</div><div class='stat-value'>" + stats.total + "</div></div>" +
       "<div class='stat-card'><div class='stat-label'>最近 7 天跟进次数</div><div class='stat-value'>" + stats.sevenDays + "</div></div>" +
-      "<div class='stat-card clickable' id='detailPendingCard'><div class='stat-label'>下次待跟进数</div><div class='stat-value'>" + stats.pending + "</div><div class='stat-tip'>点击查看待跟进事项</div></div>";
+      "<div class='stat-card clickable tip' id='detailPendingCard' data-tip='功能：查看待跟进事项。&#10;默认：统计下次跟进时间晚于当前且未标记已跟进。&#10;点击：打开历史弹窗并按待跟进过滤。'><div class='stat-label'>下次待跟进数</div><div class='stat-value'>" + stats.pending + "</div><div class='stat-tip'>点击查看待跟进事项</div></div>";
 
     document.getElementById("detailPendingCard").addEventListener("click", function () {
       openHistoryModal("", "pending");
@@ -285,7 +433,7 @@
       return;
     }
     latestWrap.innerHTML =
-      "<div class='latest-card' id='detailLatestCard'>" +
+      "<div class='latest-card tip' id='detailLatestCard' data-tip='功能：查看最近一条跟进的完整详情。&#10;点击：打开记录详情弹窗。'>" +
       "<div class='latest-top'><span class='tag " + CRMStore.typeClass(latestRecord.typeKey) + "'>" + latestRecord.typeLabel + "</span><span class='badge-latest'>最近跟进</span></div>" +
       "<div class='latest-meta'>跟进时间：" + CRMStore.formatDateTime(latestRecord.followupTime) + " ｜ 跟进人：" + CRMStore.formatPerson(latestRecord.person) + "</div>" +
       "<div class='latest-content'>" + truncate(contentOrDefault(latestRecord.content), 110) + "</div>" +
@@ -293,6 +441,8 @@
       "</div>";
 
     document.getElementById("detailLatestCard").addEventListener("click", function () {
+      CRMStore.logEvent("followup_history_detail_click");
+      renderLogs();
       activeHistoryId = latestRecord.id;
       historyEditing = false;
       renderHistoryDetail();
@@ -305,7 +455,7 @@
     document.getElementById("detailModal").classList.add("show");
   }
 
-  function renderHistoryList() {
+  function renderHistoryList(skipAutoFill) {
     var filters = getHistoryFilters();
     var list = CRMStore.filterRecords(filters);
     if (historyMode === "pending") {
@@ -355,6 +505,24 @@
 
     moreBtn.style.display = "none";
     document.getElementById("historyCount").textContent = "共 " + list.length + " 条";
+
+    if (!skipAutoFill) {
+      requestAnimationFrame(function () {
+        var body = document.querySelector("#historyModal .modal-body");
+        var safe = 0;
+        while (
+          body &&
+          historyVisibleCount < historyCurrentList.length &&
+          body.scrollHeight <= body.clientHeight + 2 &&
+          safe < 20
+        ) {
+          historyVisibleCount = Math.min(historyVisibleCount + historyPageSize, historyCurrentList.length);
+          renderHistoryList(true);
+          body = document.querySelector("#historyModal .modal-body");
+          safe++;
+        }
+      });
+    }
   }
 
   function maybeLoadMoreHistory() {
@@ -385,7 +553,7 @@
         : "未设置";
       var doneBtn = !record.nextFollowupTime
         ? ""
-        : "<button class='btn btn-outline' id='markDoneBtn'>" + (record.nextFollowupDone ? "撤销已跟进" : "标记已跟进") + "</button>";
+        : "<button class='btn btn-outline tip' id='markDoneBtn' data-tip='功能：切换下次跟进完成状态。&#10;点击：在已跟进与未跟进间切换，并联动统计。'>" + (record.nextFollowupDone ? "撤销已跟进" : "标记已跟进") + "</button>";
       content.innerHTML =
         "<div class='detail-grid'>" +
         "<div class='field'><div class='field-label'>跟进类型</div><div class='field-value'><span class='tag " + CRMStore.typeClass(record.typeKey) + "'>" + record.typeLabel + "</span></div></div>" +
@@ -424,11 +592,14 @@
       "<option value='邮件往来'>邮件往来</option>" +
       "<option value='自定义标签'>自定义标签</option>" +
       "</select><div class='error' id='editTypeError'></div></div>" +
+      "<div class='form-row'><div class='form-label'>跟进时间 <span class='required'>*</span></div>" +
+      "<input type='datetime-local' class='input' id='editFollowupTime' value='" + (record.followupTime || "") + "' />" +
+      "<div class='error' id='editFollowupTimeError'></div></div>" +
       "<div class='form-row " + (record.typeKey === "自定义标签" ? "" : "hidden") + "' id='editCustomWrap'>" +
       "<div class='form-label'>自定义标签名称 <span class='required'>*</span></div>" +
       "<input class='input' id='editCustomLabel' value='" + (record.typeKey === "自定义标签" ? record.typeLabel : "") + "' />" +
       "<div class='error' id='editCustomLabelError'></div></div>" +
-      "<div class='form-row'><div class='form-label'>跟进内容 <span class='required'>*</span></div>" +
+      "<div class='form-row'><div class='form-label'>跟进内容（选填）</div>" +
       "<textarea class='textarea' id='editContent'>" + (record.content || "") + "</textarea><div class='error' id='editContentError'></div></div>" +
       "<div class='form-row'><div class='form-label'>下次跟进时间</div><input type='datetime-local' class='input' id='editNextTime' value='" + (record.nextFollowupTime || "") + "' /></div>";
 
@@ -443,22 +614,25 @@
 
   function saveHistoryEdit() {
     var type = document.getElementById("editType").value;
+    var followupTime = document.getElementById("editFollowupTime").value;
     var custom = document.getElementById("editCustomLabel").value.trim();
     var content = document.getElementById("editContent").value.trim();
     var next = document.getElementById("editNextTime").value;
     var ok = true;
 
     document.getElementById("editTypeError").textContent = "";
+    document.getElementById("editFollowupTimeError").textContent = "";
     document.getElementById("editCustomLabelError").textContent = "";
     document.getElementById("editContentError").textContent = "";
     if (!type) { ok = false; document.getElementById("editTypeError").textContent = "请选择跟进类型"; }
+    if (!followupTime) { ok = false; document.getElementById("editFollowupTimeError").textContent = "请选择跟进时间"; }
     if (type === "自定义标签" && !custom) { ok = false; document.getElementById("editCustomLabelError").textContent = "请输入自定义标签名称"; }
-    if (!content) { ok = false; document.getElementById("editContentError").textContent = "请填写跟进内容"; }
     if (!ok) return;
 
     CRMStore.updateRecord(activeHistoryId, {
       typeKey: type,
       typeLabel: type === "自定义标签" ? custom : type,
+      followupTime: followupTime,
       content: content,
       nextFollowupTime: next
     });
@@ -475,12 +649,33 @@
     document.getElementById("typeKey").addEventListener("change", function () {
       var custom = document.getElementById("typeKey").value === "自定义标签";
       document.getElementById("customLabelRow").classList.toggle("hidden", !custom);
-      updateFillCount();
+      updateFillCount(true);
     });
-    ["typeLabelCustom", "followupTime", "content", "nextFollowupTime"].forEach(function (id) {
-      document.getElementById(id).addEventListener("input", updateFillCount);
-      document.getElementById(id).addEventListener("change", updateFillCount);
+
+    ["typeLabelCustom", "followupTime", "nextFollowupTime"].forEach(function (id) {
+      document.getElementById(id).addEventListener("input", function () {
+        updateFillCount(false);
+      });
+      document.getElementById(id).addEventListener("change", function () {
+        updateFillCount(true);
+      });
     });
+
+    var contentInput = document.getElementById("content");
+    function commitContentFillProgress() {
+      var current = contentInput.value.trim();
+      if (current !== createFillState.lastContentSnapshot) {
+        CRMStore.logEvent("followup_content_blur");
+        renderLogs();
+        createFillState.lastContentSnapshot = current;
+      }
+      updateFillCount(true);
+    }
+    contentInput.addEventListener("input", function () {
+      updateFillCount(false);
+    });
+    contentInput.addEventListener("blur", commitContentFillProgress);
+    contentInput.addEventListener("mouseleave", commitContentFillProgress);
 
     document.getElementById("submitCreateBtn").addEventListener("click", function () {
       if (!validateForm()) return;
@@ -504,6 +699,8 @@
   }
 
   function bind() {
+    setupHistoryDateInputs();
+
     document.getElementById("keyword").addEventListener("input", renderTable);
     document.getElementById("stageFilter").addEventListener("change", renderTable);
     document.getElementById("resetBtn").addEventListener("click", function () {
@@ -541,6 +738,9 @@
 
     ["historyTypeFilter", "historyStartDate", "historyEndDate"].forEach(function (id) {
       document.getElementById(id).addEventListener("change", function () {
+        if (id === "historyStartDate" || id === "historyEndDate") {
+          normalizeHistoryDateRange(id);
+        }
         historyVisibleCount = historyPageSize;
         renderHistoryList();
         refreshDateClearState();
@@ -606,6 +806,7 @@
   }
 
   if (localStorage.getItem(LOG_PREF_KEY) === null) setLogPanelVisible(false);
+  initGlobalTooltip();
   bind();
   renderLogPanelToggle();
   renderTable();

@@ -12,9 +12,9 @@
     <header class="header">
       <div class="header-title">CRM 客户管理系统 · 客户跟进事项原型</div>
       <div class="btn-row">
-        <button class="btn btn-outline" id="resetMockBtn">重置 Mock 数据</button>
-        <button class="btn btn-outline" id="toggleLogBtn">埋点日志：关</button>
-        <button class="btn btn-outline" id="showIntroBtn">原型说明</button>
+        <button class="btn btn-outline tip" id="resetMockBtn" data-tip="功能：恢复演示初始数据。&#10;默认：展示当前本地修改后的数据。&#10;点击：重置客户与跟进 Mock 并刷新视图。">重置 Mock 数据</button>
+        <button class="btn btn-outline tip" id="toggleLogBtn" data-tip="功能：控制埋点日志面板显示。&#10;默认：关闭。&#10;点击：开/关切换。">埋点日志：关</button>
+        <button class="btn btn-outline tip" id="showIntroBtn" data-tip="功能：查看原型说明。&#10;点击：打开说明弹窗。">原型说明</button>
       </div>
     </header>
 
@@ -30,7 +30,7 @@
       <div class="breadcrumbs">CRM / 客户管理 / 客户列表</div>
       <div class="page-title-row">
         <h1 class="page-title">客户列表</h1>
-        <button class="btn btn-primary" id="openDetailDemoBtn">进入客户详情演示</button>
+        <button class="btn btn-primary tip" id="openDetailDemoBtn" data-tip="功能：快速进入客户详情演示。&#10;点击：在当前页打开客户详情弹窗。">进入客户详情演示</button>
       </div>
 
       <div class="hint">演示起点：先在客户列表选择目标客户，再进入客户详情查看“跟进记录”模块，继续演示新增、详情、历史追溯和编辑删除。</div>
@@ -51,7 +51,7 @@
             </select>
           </div>
           <div class="actions">
-            <button class="btn btn-outline" id="resetBtn">重置</button>
+            <button class="btn btn-outline tip" id="resetBtn" data-tip="功能：重置列表筛选条件。&#10;点击：清空关键词和阶段筛选。">重置</button>
           </div>
         </div>
       </section>
@@ -97,8 +97,8 @@
           <div class="panel-header">
             <h3 class="panel-title">跟进记录</h3>
             <div class="btn-row">
-              <button class="btn btn-primary" id="detailNewBtn">新增跟进</button>
-              <button class="btn btn-outline" id="detailHistoryBtn">跟进历史</button>
+              <button class="btn btn-primary tip" id="detailNewBtn" data-tip="功能：新增一条跟进记录。&#10;默认：保持当前详情上下文。&#10;点击：打开新增跟进弹窗。">新增跟进</button>
+              <button class="btn btn-outline tip" id="detailHistoryBtn" data-tip="功能：查看该客户全部跟进历史。&#10;点击：打开跟进历史弹窗。">跟进历史</button>
             </div>
           </div>
           <div class="panel-body">
@@ -158,7 +158,7 @@
         </div>
       </div>
       <div class="modal-foot">
-        <button class="btn btn-primary" id="submitCreateBtn">提交并保存</button>
+        <button class="btn btn-primary tip" id="submitCreateBtn" data-tip="功能：提交本次跟进记录。&#10;默认：校验必填项（类型、时间、自定义标签名）。&#10;点击：写入记录并刷新页面数据。">提交并保存</button>
       </div>
     </div>
   </div>
@@ -182,20 +182,22 @@
           </div>
           <div class="filter-item">
             <label>开始日期</label>
-            <div class="input-with-clear">
-              <input type="date" class="input" id="historyStartDate" />
-              <button class="input-clear hidden" id="historyStartClearBtn" type="button">×</button>
+            <div class="input-with-clear date-input-wrap">
+              <input type="text" class="input date-display-input" id="historyStartDateDisplay" placeholder="--年--月--日" readonly />
+              <input type="date" class="date-picker-hidden" id="historyStartDate" />
+              <button class="input-clear hidden tip" id="historyStartClearBtn" type="button" data-tip="功能：清空开始日期筛选。&#10;点击：恢复为不限开始日期。">×</button>
             </div>
           </div>
           <div class="filter-item">
             <label>结束日期</label>
-            <div class="input-with-clear">
-              <input type="date" class="input" id="historyEndDate" />
-              <button class="input-clear hidden" id="historyEndClearBtn" type="button">×</button>
+            <div class="input-with-clear date-input-wrap">
+              <input type="text" class="input date-display-input" id="historyEndDateDisplay" placeholder="--年--月--日" readonly />
+              <input type="date" class="date-picker-hidden" id="historyEndDate" />
+              <button class="input-clear hidden tip" id="historyEndClearBtn" type="button" data-tip="功能：清空结束日期筛选。&#10;点击：恢复为不限结束日期。">×</button>
             </div>
           </div>
           <div class="filter-item actions">
-            <button class="btn btn-outline" id="historyResetBtn">重置筛选</button>
+            <button class="btn btn-outline tip" id="historyResetBtn" data-tip="功能：重置历史筛选条件。&#10;点击：恢复类型与日期默认值。">重置筛选</button>
           </div>
         </section>
         <div id="historyWrap"></div>
@@ -203,7 +205,7 @@
       <div class="modal-foot history-foot">
         <span class="history-count" id="historyCount">共 0 条</span>
         <button class="btn btn-outline" id="historyMoreBtn">查看更多</button>
-        <button class="btn btn-primary" id="historyCreateBtn">新增跟进</button>
+        <button class="btn btn-primary tip" id="historyCreateBtn" data-tip="功能：在历史上下文中新增跟进。&#10;点击：打开新增跟进弹窗。">新增跟进</button>
       </div>
     </div>
   </div>
@@ -213,9 +215,9 @@
       <div class="modal-head"><span>跟进记录详情</span><button class="modal-close" data-close="historyDetailModal">×</button></div>
       <div class="modal-body" id="historyDetailContent"></div>
       <div class="modal-foot">
-        <button class="btn btn-outline" id="historyEditBtn">编辑</button>
-        <button class="btn btn-danger" id="historyDeleteBtn">删除</button>
-        <button class="btn btn-primary hidden" id="historySaveBtn">保存</button>
+        <button class="btn btn-outline tip" id="historyEditBtn" data-tip="功能：进入编辑状态。&#10;点击：可修改类型、内容、下次跟进时间。">编辑</button>
+        <button class="btn btn-danger tip" id="historyDeleteBtn" data-tip="功能：删除当前记录。&#10;点击：进入二次确认。">删除</button>
+        <button class="btn btn-primary hidden tip" id="historySaveBtn" data-tip="功能：保存编辑内容。&#10;点击：更新记录并刷新统计与列表。">保存</button>
       </div>
     </div>
   </div>
@@ -225,7 +227,7 @@
       <div class="modal-head"><span>确认删除</span><button class="modal-close" data-close="historyDeleteModal">×</button></div>
       <div class="modal-body">删除后不可恢复，确认要删除当前跟进记录吗？</div>
       <div class="modal-foot">
-        <button class="btn btn-danger" id="historyConfirmDeleteBtn">确认删除</button>
+        <button class="btn btn-danger tip" id="historyConfirmDeleteBtn" data-tip="功能：执行删除。&#10;点击：删除记录并回写统计。">确认删除</button>
       </div>
     </div>
   </div>

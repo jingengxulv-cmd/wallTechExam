@@ -197,6 +197,36 @@ a {
   border-color: var(--line);
 }
 
+.tip {
+  position: relative;
+}
+
+.global-tooltip {
+  position: fixed;
+  z-index: 2000;
+  min-width: 180px;
+  max-width: 340px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(16, 25, 45, 0.96);
+  color: #eaf0ff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+  white-space: pre-line;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.global-tooltip.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .field-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(220px, 1fr));

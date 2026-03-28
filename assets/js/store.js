@@ -198,6 +198,9 @@
     if (!target) return null;
     target.typeKey = payload.typeKey;
     target.typeLabel = payload.typeLabel;
+    if (payload.followupTime) {
+      target.followupTime = payload.followupTime;
+    }
     target.content = payload.content;
     var oldNext = target.nextFollowupTime || "";
     target.nextFollowupTime = payload.nextFollowupTime || "";
